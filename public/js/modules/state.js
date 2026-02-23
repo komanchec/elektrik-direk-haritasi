@@ -4,7 +4,7 @@
 // ============================================
 
 export const state = {
-    API_URL: 'http://localhost:3000/api',
+    API_URL: '/api',
     token: localStorage.getItem('token'),
     user: JSON.parse(localStorage.getItem('user') || '{}'),
 
