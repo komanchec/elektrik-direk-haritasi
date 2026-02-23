@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Paneli - Elektrik Direk Haritası</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ecf0f1;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .list-item:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-admin {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge-user {
+            background: #3498db;
+            color: white;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 35px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>⚙️ Admin Paneli</h1>
+        <div>
+            <a href="/harita" style="color: white; text-decoration: none; margin-right: 20px;">Haritaya Dön</a>
+            <span id="adminName"></span> |
+            <a href="#" onclick="cikis()" style="color: #e74c3c;">Çıkış</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid">
+            <!-- Direk Tipleri -->
+            <div class="card">
+                <h2>Direk Tipleri</h2>
+                <div class="form-group">
+                    <label>Direk Cinsi</label>
+                    <select id="tipCins"></select>
+                </div>
+                <div class="form-group">
+                    <label>Tip Adı</label>
+                    <input type="text" id="tipAd" placeholder="Örn: 10I">
+                </div>
+                <div class="form-group">
+                    <label>Renk</label>
+                    <input type="color" id="tipRenk" class="color-picker" value="#FF5722">
+                </div>
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <input type="text" id="tipAciklama" placeholder="Açıklama">
+                </div>
+                <button class="btn-primary" onclick="tipEkle()">Ekle</button>
+                <div class="list" id="tipList"></div>
+            </div>
+
+            <!-- Direk Cinsleri -->
+            <div class="card">
+                <h2>Direk Cinsleri</h2>
+                <div class="form-group">
+                    <label>Cins Adı</label>
+                    <input type="text" id="cinsAd" placeholder="Örn: Ana Hat">
+                </div>
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <input type="text" id="cinsAciklama" placeholder="Açıklama">
+                </div>
+                <button class="btn-primary" onclick="cinsEkle()">Ekle</button>
+                <div class="list" id="cinsList"></div>
+            </div>
+
+            <!-- Malzeme Cinsleri -->
+            <div class="card">
+                <h2>📦 Malzeme Cinsleri</h2>
+                <div class="form-group">
+                    <label>Cins Adı</label>
+                    <input type="text" id="malzemeCinsAd" placeholder="Örn: TOPRAKLAMA">
+                </div>
+                <button class="btn-primary" onclick="malzemeCinsEkle()">Ekle</button>
+                <div class="list" id="malzemeCinsList"></div>
+            </div>
+
+            <!-- Malzeme Tipleri -->
+            <div class="card">
+                <h2>🔧 Malzeme Tipleri</h2>
+                <div class="form-group">
+                    <label>Malzeme Cinsi</label>
+                    <select id="malzemeTipCins"></select>
+                </div>
+                <div class="form-group">
+                    <label>Tip Adı</label>
+                    <input type="text" id="malzemeTipAd" placeholder="Örn: TOPRAKLAMA KAZIĞI">
+                </div>
+                <div class="form-group">
+                    <label>Birim</label>
+                    <select id="malzemeTipBirim">
+                        <option value="adet">Adet</option>
+                        <option value="ad/ad">ad/ad</option>
+                        <option value="mt/mt">mt/mt</option>
+                        <option value="metre">Metre</option>
+                        <option value="kg">Kilogram</option>
+                        <option value="takım">Takım</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="malzemeTipEkle()">Ekle</button>
+                <div class="list" id="malzemeTipList"></div>
+            </div>
+
+            <!-- İletken Tipleri (YENİ) -->
+            <div class="card">
+                <h2>⚡ İletken Tipleri</h2>
+                <div class="form-group">
+                    <label>Kod</label>
+                    <input type="text" id="iletkenKod" placeholder="Örn: AAC">
+                </div>
+                <div class="form-group">
+                    <label>Ad</label>
+                    <input type="text" id="iletkenAd" placeholder="Örn: Alüminyum İletken">
+                </div>
+                <div class="form-group">
+                    <label>Renk</label>
+                    <input type="color" id="iletkenRenk" class="color-picker" value="#3b82f6">
+                </div>
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <input type="text" id="iletkenAciklama" placeholder="Opsiyonel açıklama">
+                </div>
+                <button class="btn-primary" onclick="iletkenEkle()">Ekle</button>
+                <div class="list" id="iletkenList"></div>
+            </div>
+
+            <!-- Kullanıcılar -->
+            <div class="card" id="kullaniciCard">
+                <h2>Kullanıcılar</h2>
+                <div class="list" id="kullaniciList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token || user.role !== 'admin') {
+            alert('Admin yetkisi gerekli!');
+            window.location.href = '/';
+        }
+
+        document.getElementById('adminName').textContent = user.username;
+
+        async function api(url, options = {}) {
+            const res = await fetch(`${API_URL}${url}`, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            return res.json();
+        }
+
+        // ============================================
+        // DİREK TİPLERİ
+        // ============================================
+        async function loadTipler() {
+            const tipler = await api('/tipler');
+            const list = document.getElementById('tipList');
+            list.innerHTML = '';
+            tipler.forEach(t => {
+                list.innerHTML += `
+                        <div class="list-item">
+                            <div>
+                                <span style="display: inline-block; width: 20px; height: 20px; background: ${t.renk}; border-radius: 50%; margin-right: 10px; vertical-align: middle;"></span>
+                                <small style="color:#666; margin-right:5px;">[${t.cins_adi}]</small> <strong>${t.ad}</strong>
+                            </div>
+                            <button class="btn-danger" onclick="tipSil(${t.id})">Sil</button>
+                        </div>
+                    `;
+            });
+        }
+
+        async function tipEkle() {
+            const cins_id = document.getElementById('tipCins').value;
+            const ad = document.getElementById('tipAd').value.trim();
+            const renk = document.getElementById('tipRenk').value;
+            const aciklama = document.getElementById('tipAciklama').value.trim();
+
+            if (!cins_id || !ad) return alert('Cins seçimi ve Tip adı gerekli!');
+
+            await api('/tipler', {
+                method: 'POST',
+                body: JSON.stringify({ cins_id, ad, renk, aciklama })
+            });
+
+            document.getElementById('tipAd').value = '';
+            document.getElementById('tipAciklama').value = '';
+            loadTipler();
+        }
+
+        async function tipSil(id) {
+            if (!confirm('Silmek istediğinize emin misiniz?')) return;
+            await api(`/tipler/${id}`, { method: 'DELETE' });
+            loadTipler();
+        }
+
+        // ============================================
+        // DİREK CİNSLERİ
+        // ============================================
+        async function loadCinsler() {
+            const cinsler = await api('/tipler/cins');
+            const list = document.getElementById('cinsList');
+            const tipCinsSelect = document.getElementById('tipCins');
+
+            list.innerHTML = '';
+            if (tipCinsSelect) tipCinsSelect.innerHTML = '';
+
+            cinsler.forEach(c => {
+                list.innerHTML += `
+                        <div class="list-item">
+                            <span>${c.ad}</span>
+                            <button class="btn-danger" onclick="cinsSil(${c.id})">Sil</button>
+                        </div>
+                    `;
+                if (tipCinsSelect) {
+                    tipCinsSelect.innerHTML += `<option value="${c.id}">${c.ad}</option>`;
+                }
+            });
+        }
+
+        async function cinsEkle() {
+            const ad = document.getElementById('cinsAd').value.trim();
+            const aciklama = document.getElementById('cinsAciklama').value.trim();
+
+            if (!ad) return alert('Cins adı gerekli!');
+
+            await api('/tipler/cins', {
+                method: 'POST',
+                body: JSON.stringify({ ad, aciklama })
+            });
+
+            document.getElementById('cinsAd').value = '';
+            loadCinsler();
+        }
+
+        // ============================================
+        // MALZEME CİNSLERİ
+        // ============================================
+        async function loadMalzemeCinsler() {
+            const cinsler = await api('/malzemeler/cinsler');
+            const list = document.getElementById('malzemeCinsList');
+            list.innerHTML = '';
+            cinsler.forEach(c => {
+                list.innerHTML += `
+                        <div class="list-item">
+                            <span>${c.ad}</span>
+                            <button class="btn-danger" onclick="malzemeCinsSil(${c.id})">Sil</button>
+                        </div>
+                    `;
+            });
+
+            // Tip ekleme formu için cins dropdown'ı güncelle
+            const select = document.getElementById('malzemeTipCins');
+            select.innerHTML = '';
+            cinsler.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.ad}</option>`;
+            });
+        }
+
+        async function malzemeCinsEkle() {
+            const ad = document.getElementById('malzemeCinsAd').value.trim();
+            if (!ad) return alert('Cins adı gerekli!');
+
+            const res = await api('/malzemeler/cinsler', {
+                method: 'POST',
+                body: JSON.stringify({ ad })
+            });
+
+            if (res.error) {
+                alert('Hata: ' + res.error);
+                return;
+            }
+
+            document.getElementById('malzemeCinsAd').value = '';
+            loadMalzemeCinsler();
+        }
+
+        async function malzemeCinsSil(id) {
+            if (!confirm('Bu cinsi ve altındaki tüm tipleri silmek istediğinize emin misiniz?')) return;
+            await api(`/malzemeler/cinsler/${id}`, { method: 'DELETE' });
+            loadMalzemeCinsler();
+            loadMalzemeTipler();
+        }
+
+        // ============================================
+        // MALZEME TİPLERİ
+        // ============================================
+        async function loadMalzemeTipler() {
+            const tipler = await api('/malzemeler/tipler');
+            const list = document.getElementById('malzemeTipList');
+            list.innerHTML = '';
+            tipler.forEach(t => {
+                list.innerHTML += `
+                        <div class="list-item">
+                            <div>
+                                <strong>${t.ad}</strong>
+                                <span style="color: #888; font-size: 11px;"> (${t.cins_adi}) - ${t.birim}</span>
+                            </div>
+                            <button class="btn-danger" onclick="malzemeTipSil(${t.id})">Sil</button>
+                        </div>
+                    `;
+            });
+        }
+
+        async function malzemeTipEkle() {
+            const cins_id = document.getElementById('malzemeTipCins').value;
+            const ad = document.getElementById('malzemeTipAd').value.trim();
+            const birim = document.getElementById('malzemeTipBirim').value;
+
+            if (!cins_id || !ad) return alert('Cins seçimi ve tip adı gerekli!');
+
+            const res = await api('/malzemeler/tipler', {
+                method: 'POST',
+                body: JSON.stringify({ cins_id: parseInt(cins_id), ad, birim })
+            });
+
+            if (res.error) {
+                alert('Hata: ' + res.error);
+                return;
+            }
+
+            document.getElementById('malzemeTipAd').value = '';
+            loadMalzemeTipler();
+        }
+
+        async function malzemeTipSil(id) {
+            if (!confirm('Bu malzeme tipini silmek istediğinize emin misiniz?')) return;
+            await api(`/malzemeler/tipler/${id}`, { method: 'DELETE' });
+            loadMalzemeTipler();
+        }
+
+        // ============================================
+        // İLETKEN TİPLERİ (YENİ)
+        // ============================================
+        async function loadIletkenler() {
+            const iletkenler = await api('/tipler/iletken');
+            const list = document.getElementById('iletkenList');
+            list.innerHTML = '';
+            iletkenler.forEach(i => {
+                list.innerHTML += `
+                        <div class="list-item">
+                            <div>
+                                <span style="display: inline-block; width: 20px; height: 20px; background: ${i.renk}; border-radius: 50%; margin-right: 10px; vertical-align: middle; border: 2px solid #ddd;"></span>
+                                <strong>${i.kod}</strong> - ${i.ad}
+                            </div>
+                            <button class="btn-danger" onclick="iletkenSil(${i.id})">Sil</button>
+                        </div>
+                    `;
+            });
+        }
+
+        async function iletkenEkle() {
+            const kod = document.getElementById('iletkenKod').value.trim().toUpperCase();
+            const ad = document.getElementById('iletkenAd').value.trim();
+            const renk = document.getElementById('iletkenRenk').value;
+            const aciklama = document.getElementById('iletkenAciklama').value.trim();
+
+            if (!kod || !ad) return alert('Kod ve ad gerekli!');
+
+            const res = await api('/tipler/iletken', {
+                method: 'POST',
+                body: JSON.stringify({ kod, ad, renk, aciklama })
+            });
+
+            if (res.error) {
+                alert('Hata: ' + res.error);
+                return;
+            }
+
+            document.getElementById('iletkenKod').value = '';
+            document.getElementById('iletkenAd').value = '';
+            document.getElementById('iletkenAciklama').value = '';
+            loadIletkenler();
+        }
+
+        async function iletkenSil(id) {
+            if (!confirm('Bu iletken tipini silmek istediğinize emin misiniz?')) return;
+            await api(`/tipler/iletken/${id}`, { method: 'DELETE' });
+            loadIletkenler();
+        }
+
+        // ============================================
+        // KULLANICILAR
+        // ============================================
+        async function loadKullanicilar() {
+            const kullanicilar = await api('/auth/users');
+            const list = document.getElementById('kullaniciList');
+            list.innerHTML = '';
+            kullanicilar.forEach(u => {
+                list.innerHTML += `
+                        <div class="list-item">
+                            <div>
+                                ${u.username}
+                                <span class="badge badge-${u.role}">${u.role}</span>
+                            </div>
+                        </div>
+                    `;
+            });
+        }
+
+        function cikis() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // ============================================
+        // BAŞLATMA
+        // ============================================
+        loadTipler();
+        loadCinsler();
+        loadMalzemeCinsler();
+        loadMalzemeTipler();
+        loadIletkenler();
+        loadKullanicilar();
+    </script>
+</body>
+
+</html>

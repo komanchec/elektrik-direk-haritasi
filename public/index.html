@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elektrik Direk Haritası - OSM</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <!-- Hamburger menu (mobil) -->
+    <button class="hamburger-btn" data-action="toggleSidebar" aria-label="Menü">☰</button>
+    <div class="sidebar-overlay" id="sidebarOverlay" data-action="closeSidebar"></div>
+
+    <div id="container">
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h2>
+                    <span>⚡</span>
+                    <span>Direk Yönetimi</span>
+                </h2>
+                <button class="sidebar-close-btn" data-action="closeSidebar" style="display: none;">&times;</button>
+                <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;" id="currentProjectName">Proje seçilmedi</p>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Direk Ekleme Formu -->
+                <div class="sidebar-section">
+                    <h3>Yeni Direk Ekle</h3>
+                    <div class="form-group">
+                        <label>Direk Numarası (Boş bırakırsan otomatik verilir)</label>
+                        <input type="text" id="direkNumara" placeholder="Örn: D-001 (boş = otomatik)">
+                    </div>
+                    <div class="form-group">
+                        <label>Direk Cinsi</label>
+                        <select id="direkCinsi"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Direk Tipi</label>
+                        <select id="direkTipi"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Durum</label>
+                        <select id="direkDurum">
+                            <option value="MEVCUT">MEVCUT</option>
+                            <option value="YENİ">YENİ</option>
+                            <option value="DEMONTAJ">DEMONTAJ</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Enlem</label>
+                            <input type="number" id="direkLat" step="any" placeholder="Lat">
+                        </div>
+                        <div class="form-group">
+                            <label>Boylam</label>
+                            <input type="number" id="direkLng" step="any" placeholder="Lng">
+                        </div>
+                    </div>
+                    <button class="btn btn-success" data-action="direkEkle">➕ Direk Ekle</button>
+                    <button class="btn btn-primary" data-action="haritadanSec">
+                        📍 Haritadan Seç (Tıkla ve Ekle)
+                    </button>
+                </div>
+
+                <!-- Seçili Direk Detayları -->
+                <div class="sidebar-section" id="direkDetaySection" style="display: none;">
+                    <h3>Direk Detayları</h3>
+                    <div class="form-group">
+                        <label>Numara</label>
+                        <input type="text" id="editNumara">
+                    </div>
+                    <div class="form-group">
+                        <label>Cins</label>
+                        <select id="editCins"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tip</label>
+                        <select id="editTip"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Durum</label>
+                        <select id="editDurum">
+                            <option value="MEVCUT">MEVCUT</option>
+                            <option value="YENİ">YENİ</option>
+                            <option value="DEMONTAJ">DEMONTAJ</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Enlem</label>
+                            <input type="number" id="editLat" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label>Boylam</label>
+                            <input type="number" id="editLng" step="any">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Açıklama / Not</label>
+                        <textarea id="editAciklama" rows="3" placeholder="Direk hakkında not..."
+                            style="width: 100%; padding: 8px; border: 1px solid #475569; border-radius: 4px; background: #1e293b; color: white; resize: vertical;"></textarea>
+                        <button class="btn btn-primary" data-action="aciklamaKaydet"
+                            style="margin-top: 5px; width: auto; padding: 6px 12px; font-size: 12px;">💾 Açıklama
+                            Kaydet</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Fotoğraf</label>
+                        <input type="file" id="direkFotoInput" accept="image/*" data-action="fotoYukle"
+                            style="color: white; font-size: 12px;">
+                        <div id="fotoOnizleme" style="margin-top: 10px; max-width: 250px;"></div>
+                    </div>
+                    <button class="btn btn-primary" data-action="direkGuncelle">💾 Güncelle</button>
+                    <button class="btn btn-danger" data-action="direkSil">🗑️ Sil</button>
+
+                    <!-- Malzemeler -->
+                    <h3 style="margin-top: 20px;">Malzemeler</h3>
+                    <button class="btn btn-success" data-action="malzemeEklePenceresiAc"
+                        style="width: 100%; margin-bottom: 10px;">📦 Malzeme Ekle</button>
+                    <div class="malzeme-list" id="malzemeList"></div>
+                </div>
+
+                <!-- Direk Listesi -->
+                <div class="sidebar-section">
+                    <h3>Proje Direkleri</h3>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-value" id="toplamDirek">0</div>
+                            <div class="stat-label">Toplam Direk</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="toplamMesafe">0</div>
+                            <div class="stat-label">Toplam Hat (km)</div>
+                        </div>
+                    </div>
+                    <div class="direk-list" id="direkList"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <!-- Üst Bar — Dropdown Grupları -->
+        <div class="top-bar">
+            <div class="project-selector">
+                <label>Proje:</label>
+                <select id="projeSelect" data-action="projeDegistir" style="min-width: 140px;">
+                    <option value="">Proje seçin...</option>
+                </select>
+
+                <input type="text" id="direkAraInput" placeholder="🔍 Direk ara...">
+                <button class="topbar-btn" data-action="direkAraBtn">Ara</button>
+                <button class="topbar-btn" data-action="yeniProjeModal" style="color: var(--accent);">＋ Yeni
+                    Proje</button>
+
+                <!-- Raporlar Dropdown -->
+                <div class="dropdown-group">
+                    <button class="dropdown-trigger">📊 Raporlar ▾</button>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item" data-action="metrajHesapla">📐 Metraj Raporu</button>
+                        <button class="dropdown-item" data-action="malzemeRaporu">📋 Malzeme Raporu</button>
+                        <button class="dropdown-item" data-action="maliyetRaporu">💰 Maliyet Raporu</button>
+                        <div class="dropdown-sep"></div>
+                        <button class="dropdown-item" data-action="pdfRaporOlustur">📄 PDF Rapor</button>
+                        <button class="dropdown-item" data-action="islemGecmisiGoster">📋 İşlem Geçmişi</button>
+                    </div>
+                </div>
+
+                <!-- Import/Export Dropdown -->
+                <div class="dropdown-group">
+                    <button class="dropdown-trigger">📥 Veri ▾</button>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item" data-action="topluImportModal">📥 Excel Import</button>
+                        <button class="dropdown-item" data-action="excelImportModal">📊 CSV Şablon Import</button>
+                        <button class="dropdown-item" data-action="dxfImportModal">📐 DXF Import</button>
+                        <div class="dropdown-sep"></div>
+                        <button class="dropdown-item" data-action="exportExcel">📊 Excel Export</button>
+                        <button class="dropdown-item" data-action="exportKML">🌍 KML Export</button>
+                        <button class="dropdown-item" data-action="dxfExport">📐 DXF Export</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-menu">
+                <button class="theme-toggle" data-action="toggleTheme" title="Tema Değiştir">🌙</button>
+                <span id="userName" style="font-weight: 600;"></span>
+                <a href="#" data-action="cikis"
+                    style="color: var(--danger); text-decoration: none; font-weight: 500; font-size: 12px;">Çıkış</a>
+                <span id="adminLink" style="display: none;"> <a href="/admin"
+                        style="color: var(--accent); text-decoration: none; font-size: 12px;">Admin</a></span>
+            </div>
+        </div>
+
+        <!-- YENİ ÜST ARAÇ ÇUBUĞU (TOP RIBBON) -->
+        <div class="top-ribbon" id="topRibbon">
+            <!-- Temel Araçlar Grubu -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn active" data-action="setTool" data-tool="select" title="Seçim Aracı">
+                    <span class="ribbon-icon">🔍</span>
+                </button>
+                <button class="ribbon-btn" data-action="setTool" data-tool="add" title="Direk Ekle">
+                    <span class="ribbon-icon">📍</span>
+                </button>
+                <button class="ribbon-btn" data-action="setTool" data-tool="measure" title="Mesafe Ölç (M)">
+                    <span class="ribbon-icon">📏</span>
+                </button>
+            </div>
+
+            <div class="ribbon-divider"></div>
+
+            <!-- Çizim Grubu -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" data-action="hatCizimModuBaslat" title="Hat Çiz">
+                    <span class="ribbon-icon">🔌</span>
+                </button>
+                <button class="ribbon-btn" data-action="zincirlemeHatModuBaslat" title="Zincirleme Hat">
+                    <span class="ribbon-icon">⛓️</span>
+                </button>
+                <button class="ribbon-btn" data-action="otomatikHatOlustur" title="Otomatik Hat">
+                    <span class="ribbon-icon">🕸️</span>
+                </button>
+            </div>
+
+            <div class="ribbon-divider"></div>
+
+            <!-- Görünüm & Analiz Grubu -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" data-action="toggleCADMode" title="CAD Modu">
+                    <span class="ribbon-icon">📐</span>
+                </button>
+                <button class="ribbon-btn" data-action="toggleLayerPanel" title="Katmanlar">
+                    <span class="ribbon-icon">🗂️</span>
+                </button>
+                <button class="ribbon-btn" data-action="toggleFilterPanel" title="Filtrele">
+                    <span class="ribbon-icon">🔽</span>
+                </button>
+            </div>
+
+            <div class="ribbon-divider"></div>
+
+            <!-- Seçim & Özel Operasyonlar Grubu -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" data-action="startPolygonSelect" title="Bölge Seçimi">
+                    <span class="ribbon-icon">⬡</span>
+                </button>
+                <button class="ribbon-btn" data-action="trafoBolgesiTanimla" title="Trafo Bölgesi">
+                    <span class="ribbon-icon">⚡</span>
+                </button>
+                <button class="ribbon-btn" data-action="hatAnaliziYap" title="Topoloji Analizi">
+                    <span class="ribbon-icon">🔬</span>
+                </button>
+                <button class="ribbon-btn" data-action="koordinatDonusum" title="Koordinat Dönüşüm">
+                    <span class="ribbon-icon">🌐</span>
+                </button>
+            </div>
+
+            <div class="ribbon-divider"></div>
+
+            <!-- Navigasyon & Araçlar Grubu -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" data-action="konumumuGoster" title="Konumumu Göster">
+                    <span class="ribbon-icon">📱</span>
+                </button>
+                <button class="ribbon-btn" data-action="yolTarifiAl" title="Yol Tarifi Al">
+                    <span class="ribbon-icon">🚗</span>
+                </button>
+                <button class="ribbon-btn" data-action="gpxImportModal" title="GPX Import">
+                    <span class="ribbon-icon">📤</span>
+                </button>
+                <button class="ribbon-btn" data-action="toggleLiveSync" title="Canlı Senkron">
+                    <span class="ribbon-icon">📡</span>
+                </button>
+            </div>
+
+            <div class="ribbon-divider"></div>
+
+            <!-- Sistem Grubu -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" data-action="toggleRecentPanel" title="Son İşlemler">
+                    <span class="ribbon-icon">📝</span>
+                </button>
+                <button class="ribbon-btn" data-action="temizleCizimler" title="Çizimleri Temizle">
+                    <span class="ribbon-icon">🧹</span>
+                </button>
+                <button class="ribbon-btn" data-action="startOnboarding" title="Yardım / Tur">
+                    <span class="ribbon-icon">❓</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mesafe Sonucu -->
+        <div id="measureResult" class="measure-result" style="display: none;">
+            📏 Mesafe: <span id="measureDistance">0</span> m
+            <button data-action="kapatMeasure"
+                style="margin-left: 15px; background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px;">Kapat</button>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-bar-left">
+                <div class="status-item">
+                    <span class="status-dot"></span>
+                    <span>Bağlı</span>
+                </div>
+                <div class="status-item" id="statusCoord">
+                    📍 39.9200, 32.8540
+                </div>
+                <div class="status-item" id="statusZoom">
+                    🔍 Zoom: 15
+                </div>
+            </div>
+            <div class="status-bar-right">
+                <div class="status-item" id="statusDirekCount">
+                    📌 0 direk
+                </div>
+                <div class="status-item" id="statusHatCount">
+                    🔗 0 hat
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yeni Proje Modal -->
+    <div id="projeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Yeni Proje Oluştur</h2>
+                <button class="close-btn" data-action="kapatModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Proje Adı</label>
+                <input type="text" id="yeniProjeAd" placeholder="Proje adı girin">
+            </div>
+            <div class="form-group">
+                <label>Açıklama</label>
+                <input type="text" id="yeniProjeAciklama" placeholder="Açıklama (opsiyonel)">
+            </div>
+            <button class="btn btn-success" data-action="projeOlustur">Oluştur</button>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,1 @@
+cd C:\Users\Admin\Desktop\cbsler\WEB\elektrik-direk-haritasi
