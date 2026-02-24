@@ -207,7 +207,7 @@ export async function loadDirekler(projeId) {
             <span style="font-size: 11px; color: var(--text-secondary);">${d.cins_adi} - ${d.tip_adi}</span>
             <div class="contextual-actions">
                 <button class="context-btn" onclick="window.direkSecById(${d.id})" title="Düzenle / Detaylar">✏️</button>
-                <button class="context-btn" onclick="window._loadDirekMalzemeler(${d.id}); window.document.getElementById('direkDetaySection').style.display='block'; window.document.querySelector('[data-action=\\'malzemeEklePenceresiAc\\']').click();" title="Malzeme Ekle">📦</button>
+                <button class="context-btn" onclick="window.direkSecById(${d.id}); setTimeout(() => { window.document.querySelector('[data-action=\\'malzemeEklePenceresiAc\\']').click(); }, 150);" title="Malzeme Ekle">📦</button>
                 <button class="context-btn danger" onclick="if(confirm('Direği silmek istediğinize emin misiniz?')) { window.direkSilEvent(${d.id}); }" title="Sil">🗑️</button>
             </div>
         `;
@@ -268,11 +268,17 @@ export function direkSec(direk, marker) {
 
     state.markers.forEach(m => {
         const el = m.marker.getElement();
-        if (el) el.querySelector('.direk-marker').classList.remove('selected');
+        if (el) {
+            const dMarker = el.querySelector('.direk-marker');
+            if (dMarker) dMarker.classList.remove('selected');
+        }
     });
 
     const markerEl = marker.getElement();
-    if (markerEl) markerEl.querySelector('.direk-marker').classList.add('selected');
+    if (markerEl) {
+        const dMarker = markerEl.querySelector('.direk-marker');
+        if (dMarker) dMarker.classList.add('selected');
+    }
 
     document.getElementById('editNumara').value = direk.numara || '';
     document.getElementById('editCins').value = direk.cins_id || '';

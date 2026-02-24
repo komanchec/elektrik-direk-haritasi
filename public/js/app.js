@@ -83,6 +83,13 @@ const actions = {
 
     // Sidebar
     direkEkle,
+    toggleAccordion: (el) => {
+        el.classList.toggle('collapsed');
+        const content = el.nextElementSibling;
+        if (content && content.classList.contains('accordion-content')) {
+            content.style.display = el.classList.contains('collapsed') ? 'none' : 'block';
+        }
+    },
     direkGuncelle,
     direkSil,
     malzemeEklePenceresiAc,
@@ -109,11 +116,11 @@ const actions = {
 
     // Mobile sidebar toggle
     toggleSidebar: () => {
-        document.getElementById('sidebar').classList.toggle('open');
+        document.querySelector('.properties-panel').classList.toggle('open');
         document.getElementById('sidebarOverlay').classList.toggle('active');
     },
     closeSidebar: () => {
-        document.getElementById('sidebar').classList.remove('open');
+        document.querySelector('.properties-panel').classList.remove('open');
         document.getElementById('sidebarOverlay').classList.remove('active');
     },
 
@@ -268,8 +275,39 @@ window._electronMenuAction = function (action) {
 };
 
 // ============================================
+// DRAGGABLE PANEL MANTIĞI
+// ============================================
+
+// ============================================
 // BAŞLATMA (Initialization)
 // ============================================
+
+// ============================================
+// COLLAPSIBLE PANEL MANTIĞI (AutoCAD Edge Layout)
+// ============================================
+function initCollapsiblePanels() {
+    const headerBtn = document.getElementById('toggleHeaderBtn');
+    const headerEl = document.querySelector('.autocad-header');
+    
+    if (headerBtn && headerEl) {
+        headerBtn.addEventListener('click', () => {
+            headerEl.classList.toggle('collapsed');
+            // Timeout to let css transition finish before resizing map
+            setTimeout(() => { if (window.state && window.state.map) window.state.map.invalidateSize(); }, 350);
+        });
+    }
+
+    const panelBtn = document.getElementById('togglePanelBtn');
+    const panelEl = document.querySelector('.properties-panel');
+    
+    if (panelBtn && panelEl) {
+        panelBtn.addEventListener('click', () => {
+            panelEl.classList.toggle('collapsed');
+            setTimeout(() => { if (window.state && window.state.map) window.state.map.invalidateSize(); }, 350);
+        });
+    }
+}
+
 function init() {
     initTheme();
     initMap();
@@ -277,6 +315,7 @@ function init() {
     initMultiSelect();
     createMalzemeEkleModal();
     checkFirstVisit();
+    initCollapsiblePanels();
 
     // Map click handler
     state.map.on('click', function (e) {

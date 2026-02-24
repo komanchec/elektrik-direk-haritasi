@@ -764,8 +764,8 @@ body {
 }
 
 .ribbon-btn {
-    width: 36px;
     height: 36px;
+    padding: 0 var(--sp-2);
     border-radius: var(--radius-md);
     background: transparent;
     color: var(--text-secondary);
@@ -773,10 +773,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     cursor: pointer;
     font-size: 16px;
     transition: all 0.2s ease;
     position: relative;
+    white-space: nowrap;
+}
+
+.ribbon-text {
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--font-primary);
 }
 
 .ribbon-btn:hover {
@@ -2152,5 +2160,438 @@ body {
 
     .top-bar {
         left: 55px;
+    }
+}
+
+/* ══════════════════════════════════════
+   PROPERTIES PANEL (AutoCAD Style)
+   ══════════════════════════════════════ */
+.properties-panel {
+    width: 280px !important;
+    background: var(--bg-sidebar) !important;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-subtle) !important;
+    z-index: var(--z-sidebar);
+    font-family: var(--font-primary) !important;
+}
+
+.properties-panel .sidebar-header {
+    background: #22262a !important;
+    padding: 6px 10px !important;
+    border-bottom: 1px solid #000 !important;
+    cursor: grab;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.properties-panel .sidebar-header:active {
+    cursor: grabbing;
+}
+
+.properties-panel .sidebar-header h2 {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    margin: 0 !important;
+    letter-spacing: 0.5px !important;
+}
+
+.properties-panel .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 !important;
+    background: #1e1e1e !important;
+}
+
+/* Accordion */
+.accordion-header {
+    background: var(--bg-sidebar-header);
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: bold;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+    user-select: none;
+    transition: background var(--transition);
+}
+.accordion-header:hover {
+    background: var(--bg-hover);
+}
+
+.accordion-header:hover {
+    background: #363636;
+}
+
+.accordion-header .chevron {
+    font-size: 9px;
+    transition: transform 0.2s;
+}
+
+.accordion-header.collapsed .chevron {
+    transform: rotate(-90deg);
+}
+
+.accordion-content {
+    padding: 4px 0;
+    background: #1e1e1e;
+}
+
+/* Property Grid Layout */
+.property-row {
+    display: flex;
+    border-bottom: 1px solid var(--border-subtle);
+    min-height: 24px;
+}
+
+.property-row label {
+    flex: 0 0 40%;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-right: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+}
+
+.property-row input, 
+.property-row select {
+    flex: 1;
+    width: 60%;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-primary) !important;
+    font-size: 11px;
+    padding: 4px 6px;
+    outline: none;
+    font-family: var(--font-primary) !important;
+}
+
+.property-row input:focus, 
+.property-row select:focus {
+    background: var(--bg-hover) !important;
+}
+
+.property-row input:focus,
+.property-row select:focus {
+    background: #2a2a2a !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.property-row select option {
+    background: #1e1e1e;
+    color: #e0e0e0;
+}
+
+.property-full-row {
+    padding: 6px 8px;
+}
+
+.property-full-row textarea {
+    width: 100%;
+    background: var(--bg-input) !important;
+    border: 1px solid var(--border-input) !important;
+    color: var(--text-primary) !important;
+    font-size: 11px !important;
+    padding: 4px !important;
+    resize: vertical;
+    border-radius: 2px;
+}
+
+.property-actions {
+    padding: 6px 8px;
+    display: flex;
+    gap: 6px;
+}
+
+/* Utility to overwrite global styles */
+.properties-panel .btn-sm {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    border-radius: 2px !important;
+}
+
+.properties-panel .btn-primary {
+    background: #3b82f6 !important;
+    border: 1px solid #2563eb !important;
+    box-shadow: none !important;
+}
+
+.properties-panel .btn-success {
+    background: #10b981 !important;
+    border: 1px solid #059669 !important;
+    box-shadow: none !important;
+}
+
+.properties-panel .btn-danger {
+    background: #ef4444 !important;
+    border: 1px solid #dc2626 !important;
+    box-shadow: none !important;
+}
+
+.properties-panel .file-input-sm {
+    font-size: 11px !important;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.mt-1 {
+    margin-top: 4px;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
+.mb-2 {
+    margin-bottom: 8px;
+}
+
+.pt-2 {
+    padding-top: 8px;
+}
+
+.border-top {
+    border-top: 1px solid #333;
+}
+
+/* ══════════════════════════════════════
+   AUTOCAD EDGE-TO-EDGE LAYOUT
+   ══════════════════════════════════════ */
+.autocad-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: var(--bg-app);
+}
+
+.autocad-header {
+    flex-shrink: 0;
+    position: relative;
+    width: 100%;
+    z-index: var(--z-topbar);
+    background: var(--bg-sidebar-header);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    transition: margin var(--transition-slow);
+}
+.autocad-header.collapsed {
+    margin-top: -110px; /* Yaklaşık header yüksekliği. Menü gizlenince. */
+}
+
+
+.autocad-workspace {
+    flex: 1;
+    position: relative;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Yüzer Top Bar ve Ribbon'ların Pozisyonlarını İptal Etme */
+.autocad-header .top-bar {
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    transform: none;
+    width: 100%;
+    padding: 6px 12px;
+    background: transparent;
+    border-bottom: 1px solid #3d3d3d;
+    justify-content: space-between;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.autocad-header .top-ribbon {
+    position: static;
+    top: auto; left: auto; right: auto; transform: none;
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    border-radius: 0;
+    box-shadow: none;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+/* Proje Seçici vs. Kapsayıcılarının Kavislerini Kaldırma */
+.autocad-header .project-selector,
+.autocad-header .user-menu {
+    border-radius: 2px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.autocad-header .ribbon-btn,
+.autocad-header .topbar-btn,
+.autocad-header .dropdown-trigger,
+.autocad-header select,
+.autocad-header input {
+    border-radius: 2px !important;
+}
+
+/* Sidebar (Properties Panel) Ayarları - Docked Sola Dayalı */
+.autocad-workspace .properties-panel {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-right: 1px solid var(--border-subtle) !important;
+    box-shadow: var(--shadow-md) !important;
+    transition: margin-left var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.autocad-workspace .properties-panel.collapsed {
+    margin-left: -280px !important; /* Panel genişliği kadar sola kayacak */
+}
+
+
+/* Harita Alanı Esnekliki */
+.autocad-workspace #map {
+    flex: 1;
+    position: relative;
+    height: 100%;
+}
+/* Yukarı Kapama Butonu (Ribbon) */
+.toggle-header-btn {
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 16px;
+    background: var(--bg-sidebar-header);
+    border: 1px solid var(--border-subtle);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 10px;
+    z-index: 999;
+}
+.autocad-header.collapsed .toggle-header-btn {
+    bottom: -16px;
+    transform: translateX(-50%) rotate(180deg);
+    border: 1px solid var(--border-subtle);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+}
+
+/* Sola Kapama (Properties Panel) Butonu */
+.toggle-panel-btn {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    border-radius: 3px;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-size: 10px;
+    transition: transform var(--transition);
+}
+.properties-panel.collapsed .toggle-panel-btn {
+    position: absolute;
+    right: -24px;
+    top: 10px;
+    background: var(--bg-sidebar-header);
+    transform: rotate(180deg);
+    z-index: 1000;
+}
+
+/* ══════════════════════════════════════
+   AUTOCAD LAYOUT MOBILE RESPONSIVENESS
+   ══════════════════════════════════════ */
+@media (max-width: 768px) {
+    /* Header & Top Bar Düzeltmeleri */
+    .autocad-header {
+        position: relative;
+        z-index: var(--z-topbar);
+    }
+    .autocad-header .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-top: 55px; /* Hamburger menü için boşluk */
+    }
+    .autocad-header .project-selector {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    .autocad-header .user-menu {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    /* Ribbon Düzeltmeleri - Kaydırılabilir veya Alt Satıra Geçecek Şekilde */
+    .autocad-header .top-ribbon {
+        padding: 5px;
+        overflow-x: auto;
+        flex-wrap: nowrap; /* Mobilde yatay kaydırılabilir olması daha iyi */
+        -webkit-overflow-scrolling: touch;
+    }
+    .ribbon-btn {
+        padding: 0 4px;
+    }
+    .ribbon-text {
+        display: none; /* Mobilde yazıları gizle, sadece ikon kalsın */
+    }
+    .ribbon-divider {
+        margin: 0 4px;
+    }
+
+    /* Sidebar (Properties Panel) Düzeltmeleri */
+    .autocad-workspace .properties-panel {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        height: 100% !important;
+        width: 85vw !important; /* Ekranın %85'ini kaplasın */
+        max-width: 320px !important;
+        z-index: 1050 !important;
+        transform: translateX(-100%) !important;
+        transition: transform var(--transition-slow) !important;
+        margin-left: 0 !important; /* Eski margin-left hilesini iptal et */
+        border-right: 1px solid var(--border-subtle) !important;
+        box-shadow: var(--shadow-lg) !important;
+    }
+    
+    /* JavaScript "open" classı eklediğinde paneli göster */
+    .autocad-workspace .properties-panel.open {
+        transform: translateX(0) !important;
+    }
+
+    /* Kapatma Butonu Düzeni */
+    .sidebar-close-btn {
+        display: block !important;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 1060;
     }
 }

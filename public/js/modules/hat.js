@@ -7,6 +7,83 @@ import { showNotification } from './ui.js';
 import { setTool } from './tools.js';
 import { direkSec, loadDirekler } from './direk.js';
 
+// ---- Hat Özellikleri Modalı ----
+
+function hatOzellikleriModalGoster(onayCallback) {
+    if (document.getElementById('hatOzellikleriModal')) {
+        document.getElementById('hatOzellikleriModal').remove();
+    }
+
+    api('/tipler/iletken').then(iletkenler => {
+        let secenekler = iletkenler.map(i =>
+            `<option value="${i.kod}" data-renk="${i.renk}">${i.kod} - ${i.ad}</option>`
+        ).join('');
+
+        const html = `
+        <div class="modal" id="hatOzellikleriModal" style="display: flex;">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h2>Hat Özellikleri</h2>
+                    <button class="close-btn" onclick="document.getElementById('hatOzellikleriModal').remove()">&times;</button>
+                </div>
+
+                <div class="form-group">
+                    <label>İletken Tipi</label>
+                    <select id="hatOzellikIletkenTipi" style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                        ${secenekler}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>İletken Cinsi</label>
+                    <select id="hatOzellikIletkenCinsi" style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                        <option value="Tekli">Tekli İletken</option>
+                        <option value="Bölünmüş" selected>Bölünmüş (Bundle)</option>
+                        <option value="3x1">3x1 Faz</option>
+                        <option value="3x3">3x3 Faz + Nötr</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Kesit (mm²)</label>
+                    <select id="hatOzellikKesit" style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                        <option value="25">25 mm²</option>
+                        <option value="35">35 mm²</option>
+                        <option value="50">50 mm²</option>
+                        <option value="70">70 mm²</option>
+                        <option value="95" selected>95 mm²</option>
+                        <option value="120">120 mm²</option>
+                        <option value="150">150 mm²</option>
+                        <option value="185">185 mm²</option>
+                        <option value="240">240 mm²</option>
+                        <option value="300">300 mm²</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-success" id="btnHatOzellikOnay">Uygula ve Çiz</button>
+            </div>
+        </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', html);
+
+        document.getElementById('btnHatOzellikOnay').addEventListener('click', () => {
+            const iletkenTipi = document.getElementById('hatOzellikIletkenTipi').value;
+            const iletkenCinsi = document.getElementById('hatOzellikIletkenCinsi').value;
+            const kesit = parseFloat(document.getElementById('hatOzellikKesit').value);
+
+            document.getElementById('hatOzellikleriModal').remove();
+
+            if (onayCallback) {
+                onayCallback(iletkenTipi, iletkenCinsi, kesit);
+            }
+        });
+    }).catch(err => {
+        console.error('İletken tipleri alınamadı:', err);
+        showNotification('İletken tipleri alınamadı', 'error');
+    });
+}
+
 // ---- İletken Renk ----
 
 export function getIletkenRenk(tip) {
@@ -67,39 +144,36 @@ function hatDirekSec(e) {
 async function hatOlustur(direk1, direk2) {
     const mesafe = state.map.distance([direk1.lat, direk1.lng], [direk2.lat, direk2.lng]);
 
-    const iletkenTipi = prompt('İletken Tipi (örn: AAC, AAAC, ACSR):', 'AAC') || 'AAC';
-    const iletkenCinsi = prompt('İletken Cinsi (örn: Bölünmüş, Tekli):', 'Bölünmüş') || 'Bölünmüş';
-    const kesit = parseFloat(prompt('Kesit (mm²):', '95')) || 95;
+    hatOzellikleriModalGoster(async (iletkenTipi, iletkenCinsi, kesit) => {
+        try {
+            const res = await api('/direkler/hat', {
+                method: 'POST',
+                body: JSON.stringify({
+                    proje_id: parseInt(state.currentProject),
+                    direk1_id: direk1.id,
+                    direk2_id: direk2.id,
+                    iletken_tipi: iletkenTipi,
+                    iletken_cinsi: iletkenCinsi,
+                    kesit_mm2: kesit,
+                    mesafe_metre: mesafe
+                })
+            });
 
-    try {
-        const res = await api('/direkler/hat', {
-            method: 'POST',
-            body: JSON.stringify({
-                proje_id: parseInt(state.currentProject),
-                direk1_id: direk1.id,
-                direk2_id: direk2.id,
-                iletken_tipi: iletkenTipi,
-                iletken_cinsi: iletkenCinsi,
-                kesit_mm2: kesit,
-                mesafe_metre: mesafe
-            })
-        });
-
-        if (res.error) {
-            showNotification('Hata: ' + res.error, 'error');
-            return;
-        }
-
-        const hatLine = L.polyline(
-            [[direk1.lat, direk1.lng], [direk2.lat, direk2.lng]],
-            {
-                color: getIletkenRenk(iletkenTipi),
-                weight: 3,
-                opacity: 0.8
+            if (res.error) {
+                showNotification('Hata: ' + res.error, 'error');
+                return;
             }
-        ).addTo(state.map);
 
-        hatLine.bindPopup(`
+            const hatLine = L.polyline(
+                [[direk1.lat, direk1.lng], [direk2.lat, direk2.lng]],
+                {
+                    color: getIletkenRenk(iletkenTipi),
+                    weight: 3,
+                    opacity: 0.8
+                }
+            ).addTo(state.map);
+
+            hatLine.bindPopup(`
             <b>Hat Bilgisi</b><br>
             ${direk1.numara} → ${direk2.numara}<br>
             İletken: ${iletkenTipi} ${iletkenCinsi}<br>
@@ -107,16 +181,17 @@ async function hatOlustur(direk1, direk2) {
             Mesafe: ${mesafe.toFixed(2)} m
         `);
 
-        state.polylines.push(hatLine);
+            state.polylines.push(hatLine);
 
-        showNotification('Hat oluşturuldu', 'success');
+            showNotification('Hat oluşturuldu', 'success');
 
-    } catch (err) {
-        console.error('Hat oluşturma hatası:', err);
-        showNotification('Hat oluşturulamadı', 'error');
-    }
+        } catch (err) {
+            console.error('Hat oluşturma hatası:', err);
+            showNotification('Hat oluşturulamadı', 'error');
+        }
 
-    hatCizimModuKapat();
+        hatCizimModuKapat();
+    });
 }
 
 function hatCizimModuKapat() {
@@ -144,58 +219,56 @@ export async function otomatikHatOlustur() {
         return;
     }
 
-    const iletkenTipi = prompt('İletken Tipi:', 'AAC') || 'AAC';
-    const iletkenCinsi = prompt('İletken Cinsi:', 'Bölünmüş') || 'Bölünmüş';
-    const kesit = parseFloat(prompt('Kesit (mm²):', '95')) || 95;
+    hatOzellikleriModalGoster(async (iletkenTipi, iletkenCinsi, kesit) => {
+        const ziyaretEdildi = new Set();
+        const rota = [];
+        let mevcut = direkler[0];
+        rota.push(mevcut);
+        ziyaretEdildi.add(mevcut.id);
 
-    const ziyaretEdildi = new Set();
-    const rota = [];
-    let mevcut = direkler[0];
-    rota.push(mevcut);
-    ziyaretEdildi.add(mevcut.id);
+        while (ziyaretEdildi.size < direkler.length) {
+            let enYakin = null;
+            let minMesafe = Infinity;
 
-    while (ziyaretEdildi.size < direkler.length) {
-        let enYakin = null;
-        let minMesafe = Infinity;
-
-        direkler.forEach(d => {
-            if (!ziyaretEdildi.has(d.id)) {
-                const mesafe = state.map.distance([mevcut.lat, mevcut.lng], [d.lat, d.lng]);
-                if (mesafe < minMesafe) {
-                    minMesafe = mesafe;
-                    enYakin = d;
+            direkler.forEach(d => {
+                if (!ziyaretEdildi.has(d.id)) {
+                    const mesafe = state.map.distance([mevcut.lat, mevcut.lng], [d.lat, d.lng]);
+                    if (mesafe < minMesafe) {
+                        minMesafe = mesafe;
+                        enYakin = d;
+                    }
                 }
-            }
-        });
-
-        if (enYakin) {
-            await api('/direkler/hat', {
-                method: 'POST',
-                body: JSON.stringify({
-                    proje_id: parseInt(state.currentProject),
-                    direk1_id: mevcut.id,
-                    direk2_id: enYakin.id,
-                    iletken_tipi: iletkenTipi,
-                    iletken_cinsi: iletkenCinsi,
-                    kesit_mm2: kesit,
-                    mesafe_metre: minMesafe
-                })
             });
 
-            rota.push(enYakin);
-            ziyaretEdildi.add(enYakin.id);
-            mevcut = enYakin;
+            if (enYakin) {
+                await api('/direkler/hat', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        proje_id: parseInt(state.currentProject),
+                        direk1_id: mevcut.id,
+                        direk2_id: enYakin.id,
+                        iletken_tipi: iletkenTipi,
+                        iletken_cinsi: iletkenCinsi,
+                        kesit_mm2: kesit,
+                        mesafe_metre: minMesafe
+                    })
+                });
+
+                rota.push(enYakin);
+                ziyaretEdildi.add(enYakin.id);
+                mevcut = enYakin;
+            }
         }
-    }
 
-    hatlariYukle();
+        hatlariYukle();
 
-    let toplamMesafe = 0;
-    for (let i = 0; i < rota.length - 1; i++) {
-        toplamMesafe += state.map.distance([rota[i].lat, rota[i].lng], [rota[i + 1].lat, rota[i + 1].lng]);
-    }
+        let toplamMesafe = 0;
+        for (let i = 0; i < rota.length - 1; i++) {
+            toplamMesafe += state.map.distance([rota[i].lat, rota[i].lng], [rota[i + 1].lat, rota[i + 1].lng]);
+        }
 
-    showNotification(`Otomatik hat: ${rota.length} direk, ${(toplamMesafe / 1000).toFixed(2)} km`, 'success');
+        showNotification(`Otomatik hat: ${rota.length} direk, ${(toplamMesafe / 1000).toFixed(2)} km`, 'success');
+    });
 }
 
 // ---- Hatları Veritabanından Yükleme ----
