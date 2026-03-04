@@ -1,31 +1,18 @@
 {
-  "name": "elektrik-direk-haritasi",
-  "version": "1.0.0",
-  "description": "CBS tabanlı elektrik direği çizim ve yönetim programı",
-  "main": "server.js",
+  "name": "elektrik-direk-haritasi-workspace",
+  "version": "2.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/backend",
+    "packages/frontend"
+  ],
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "init-db": "node database/init.js"
-  },
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-rate-limit": "^8.2.1",
-    "express-validator": "^7.3.1",
-    "jsonwebtoken": "^9.0.2",
-    "multer": "^2.0.2",
-    "sqlite3": "^5.1.6",
-    "ssh2": "^1.17.0",
-    "uuid": "^9.0.0",
-    "xlsx": "^0.18.5",
-    "xml2js": "^0.6.2"
-  },
-  "devDependencies": {
-    "electron": "^35.1.5",
-    "electron-builder": "^26.0.12",
-    "nodemon": "^3.0.1"
+    "backend":  "cd packages/backend && npm run dev",
+    "frontend": "cd packages/frontend && npm run dev",
+    "migrate":  "cd packages/backend && npm run migrate",
+    "build":    "cd packages/frontend && npm run build",
+    "db:up":    "docker compose up -d postgres",
+    "db:down":  "docker compose down",
+    "db:logs":  "docker compose logs -f postgres"
   }
 }

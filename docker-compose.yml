@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: elektrik_direk_postgres
+    environment:
+      POSTGRES_DB: elektrik_direk
+      POSTGRES_USER: elektrik_user
+      POSTGRES_PASSWORD: elektrik_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elektrik_user -d elektrik_direk"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
