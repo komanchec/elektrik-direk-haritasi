@@ -23,6 +23,7 @@ echo "======================================================"
 echo " Elektrik Direk Haritasi -- VPS Guncelleme"
 echo " Branch : $BRANCH"
 echo " Paket  : $PKG"
+echo " OS OS  : $(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)"
 echo "======================================================"
 
 # ── 0. Temel araclar ─────────────────────────────────────────
@@ -109,6 +110,13 @@ if [ "$NODE_VER" -lt 18 ]; then
 fi
 echo "OK: Node.js $(node --version)"
 
+# Global PM2 kontrolu
+if ! command -v pm2 &>/dev/null; then
+    echo "  PM2 (Process Manager) kuruluyor..."
+    npm install -g pm2
+fi
+echo "OK: PM2 $(pm2 --version | tail -n 1)"
+
 # ── 6. Backend + migrasyon ────────────────────────────────────
 echo ""
 echo "[6/9] Backend kurulumu ve migrasyon..."
@@ -140,7 +148,20 @@ pm2 delete cbs-app 2>/dev/null || true
 cd "$APP_DIR/packages/backend"
 pm2 start server.js --name cbs-app
 pm2 save
-pm2 startup 2>/dev/null || true
+pm2 startup systemd -u root --hp /root 2>/dev/null || true
+
+# ── 10. Rocky Linux / RHEL icin Firewalld ─────────────────────
+if command -v firewall-cmd &>/dev/null; then
+    echo ""
+    echo "[10/9] Firewalld kurallari ayarlaniyor (Rocky/RHEL)..."
+    systemctl start firewalld 2>/dev/null || true
+    systemctl enable firewalld 2>/dev/null || true
+    firewall-cmd --permanent --add-port=80/tcp 2>/dev/null || true
+    firewall-cmd --permanent --add-port=3000/tcp 2>/dev/null || true
+    firewall-cmd --reload 2>/dev/null || true
+    echo "OK: Firewalld kurallari guncellendi"
+fi
+
 
 # Nginx yeniden yukle (varsa)
 if systemctl is-active --quiet nginx; then
